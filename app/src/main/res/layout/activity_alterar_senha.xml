@@ -1,50 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="24dp"
-    android:background="#FFFFFF">
+    tools:context=".AlterarSenhaActivity">
 
     <TextView
+        android:id="@+id/tvTitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Alterar Senha"
-        android:textSize="24sp"
+        android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="#333333"
-        android:layout_marginBottom="32dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="32dp"/>
 
-    <TextView android:text="Senha Atual" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <EditText
-        android:id="@+id/edt_senha_antiga"
+    <TextView
+        android:id="@+id/tvSubtitulo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:layout_marginBottom="16dp"/>
+        android:text="Defina sua nova senha definitiva."
+        android:textSize="16sp"
+        android:textColor="#666666"
+        app:layout_constraintTop_toBottomOf="@id/tvTitulo"
+        android:layout_marginTop="8dp"/>
 
-    <TextView android:text="Nova Senha" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <EditText
-        android:id="@+id/edt_nova_senha"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilSenhaAtual"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:layout_marginBottom="16dp"/>
+        android:hint="Senha Atual (Recebida no e-mail)"
+        app:layout_constraintTop_toBottomOf="@id/tvSubtitulo"
+        android:layout_marginTop="32dp">
 
-    <TextView android:text="Confirmar Nova Senha" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-    <EditText
-        android:id="@+id/edt_confirmar_nova"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtSenhaAtual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilNovaSenha"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:layout_marginBottom="32dp"/>
+        android:hint="Nova Senha"
+        app:layout_constraintTop_toBottomOf="@id/tilSenhaAtual"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtNovaSenha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilConfirmarSenha"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Confirmar Nova Senha"
+        app:layout_constraintTop_toBottomOf="@id/tilNovaSenha"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtConfirmarSenha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
-        android:id="@+id/btn_mudar_senha"
+        android:id="@+id/btnSalvarSenha"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Atualizar Senha"
-        android:backgroundTint="#607D8B"
-        android:textColor="@android:color/white"/>
+        android:text="Salvar Nova Senha"
+        android:backgroundTint="#11C5C2"
+        app:cornerRadius="10dp"
+        app:layout_constraintTop_toBottomOf="@id/tilConfirmarSenha"
+        android:layout_marginTop="40dp"/>
 
-</LinearLayout>
+    <Button
+        android:id="@+id/btnCancelar"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancelar"
+        android:textColor="#666666"
+        app:layout_constraintTop_toBottomOf="@id/btnSalvarSenha"
+        android:layout_marginTop="8dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,4 +1,19 @@
 const express = require('express');
+const nodemailer = require('nodemailer'); 
+// const bcrypt = require('bcrypt'); // <-- REMOVIDO PARA FUNCIONAR COM SEU LOGIN ATUAL
+const { con } = require('./connection'); 
+
+// Função para permitir usar 'await' no banco de dados
+function queryPromise(sql) {
+    return new Promise((resolve, reject) => {
+        con.query(sql, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+}
+
+// Importação dos Controllers
 const usuario = require('./controller/usuarioController');
 const diario = require('./controller/diarioController');
 const alimento = require('./controller/alimentoController');
@@ -11,6 +26,75 @@ const port = 8066;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// =========================
+// CONFIGURAÇÃO DO EMAIL (GMAIL)
+// =========================
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'pis.sen4c.bs1@gmail.com', 
+        pass: 'rcptxxpdvlnwzzkc' 
+    }
+});
+
+// =========================
+// ROTA ESQUECI A SENHA (AJUSTADA PARA LOGIN SEM CRIPTOGRAFIA)
+// =========================
+app.post('/api/esqueci-senha', async (req, res) => {
+    const { email } = req.body;
+    console.log(`[RESET] Tentativa para: ${email}`);
+
+    if (!email) return res.status(400).json({ message: "E-mail obrigatório" });
+
+    try {
+        // 1. Busca na tabela tb_usuarios
+        const sqlBusca = `SELECT * FROM tb_usuarios WHERE email = '${email}'`;
+        const rows = await queryPromise(sqlBusca);
+
+        if (!rows || rows.length === 0) {
+            console.log("❌ Email não encontrado na tabela tb_usuarios.");
+            return res.status(404).json({ message: "E-mail não cadastrado." });
+        }
+
+        console.log("✅ Usuário encontrado! Gerando nova senha...");
+
+        // 2. Gera senha temporária
+        const senhaTemporaria = Math.random().toString(36).slice(-8);
+
+        // --- MUDANÇA AQUI: SALVAR SENHA PURA ---
+        // Para usar criptografia (bcrypt), você teria que reescrever o usuarioController.js inteiro.
+        // Como não temos tempo, vamos salvar a senha pura para o login funcionar agora.
+        
+        // 3. Atualiza na tabela tb_usuarios (SEM CRIPTOGRAFIA)
+        const sqlUpdate = `UPDATE tb_usuarios SET senha = '${senhaTemporaria}' WHERE email = '${email}'`;
+        await queryPromise(sqlUpdate);
+
+        // 4. Envia E-mail
+        const mailOptions = {
+            from: 'Suporte Vitalog <pis.sen4c.bs1@gmail.com>',
+            to: email,
+            subject: 'Recuperação de Acesso - Vitalog',
+            html: `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h2>Vitalog - Recuperação de Senha</h2>
+                    <p>Sua nova senha temporária é:</p>
+                    <h1 style="color: #11C5C2; letter-spacing: 2px;">${senhaTemporaria}</h1>
+                    <p>Use esta senha para entrar no aplicativo.</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[SUCESSO] Email enviado para ${email}`);
+        
+        res.json({ success: true, message: "Nova senha enviada por e-mail!" });
+
+    } catch (error) {
+        console.error("[ERRO NO SERVIDOR]", error);
+        res.status(500).json({ message: "Erro interno ao resetar senha." });
+    }
+});
 
 // =========================
 // USUÁRIO - LOGIN, CADASTRO, PERFIL
@@ -59,7 +143,6 @@ app.get('/usuario/:id', async (req, res) => {
     }
 });
 
-// Atualizar Perfil (Com validação de senha)
 app.put('/usuario/:id', async (req, res) => {
     try {
         await usuario.atualizarDados(req.params.id, req.body);
@@ -73,7 +156,6 @@ app.put('/usuario/:id', async (req, res) => {
     }
 });
 
-// Alterar Senha
 app.patch('/usuario/senha/:id', async (req, res) => {
     try {
         await usuario.alterarSenha(req.params.id, req.body);

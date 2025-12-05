@@ -15,6 +15,13 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+data class EmailRequest(val email: String)
+data class GenericResponse(val success: Boolean, val message: String)
+
+data class AlterarSenhaRequest(
+    val senha_atual: String,
+    val nova_senha: String
+)
 
 interface UsuarioService {
 
@@ -43,4 +50,13 @@ interface UsuarioService {
         @Path("id") id: Int,
         @Body dados: SenhaUpdateRequest
     ): Response<Map<String, String>>
+
+    @POST("/api/esqueci-senha")
+    fun esqueciSenha(@Body body: EmailRequest): Call<GenericResponse>
+
+    @PATCH("/usuario/senha/{id}")
+    fun alterarSenha(
+        @Path("id") id: Int,
+        @Body body: AlterarSenhaRequest
+    ): Call<GenericResponse>
 }

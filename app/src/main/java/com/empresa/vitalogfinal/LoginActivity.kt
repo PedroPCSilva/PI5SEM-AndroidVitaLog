@@ -3,19 +3,23 @@ package com.empresa.vitalogfinal
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.speech.tts.TextToSpeech // Importante
+import android.speech.tts.TextToSpeech
+import android.text.InputType
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton // Importante
+import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.empresa.vitalogfinal.credenciais.Credenciais
 import com.empresa.vitalogfinal.model.usuario.LoginResponse
 import com.empresa.vitalogfinal.model.usuario.Usuario
+import com.empresa.vitalogfinal.service.EmailRequest
+import com.empresa.vitalogfinal.service.GenericResponse
 import com.empresa.vitalogfinal.service.UsuarioService
 import com.empresa.vitalogfinal.view.menu.MenuActivity
 import retrofit2.Call
@@ -23,23 +27,23 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.Locale // Importante
+import java.util.Locale
 
-// Adicionei ", TextToSpeech.OnInitListener" na declaração da classe
 class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var btnVoltar: Button
     private lateinit var btnLogin: Button
     private lateinit var edtEmail: EditText
     private lateinit var edtSenha: EditText
+    private lateinit var txtEsqueciSenha: TextView
 
-    // Variáveis para Acessibilidade
     private lateinit var btnAcessibilidade: ImageButton
     private lateinit var tts: TextToSpeech
 
+    val cred = Credenciais()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_login)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -48,76 +52,83 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             insets
         }
 
-        // Inicializa componentes visuais
         btnVoltar = findViewById(R.id.btnVoltar)
         btnLogin = findViewById(R.id.btnLogin)
         edtEmail = findViewById(R.id.edtEmail)
         edtSenha = findViewById(R.id.edtSenha)
-        btnAcessibilidade = findViewById(R.id.btnAcessibilidade) // Novo botão
+        btnAcessibilidade = findViewById(R.id.btnAcessibilidade)
+        txtEsqueciSenha = findViewById(R.id.txtEsqueciSenha)
 
-        // Inicializa o TTS
         tts = TextToSpeech(this, this)
 
-        // Configura cliques
         btnVoltar.setOnClickListener { finish() }
 
-        btnLogin.setOnClickListener {
-            realizarLogin()
-        }
+        btnLogin.setOnClickListener { realizarLogin() }
 
-        // Clique do botão de acessibilidade
+        txtEsqueciSenha.setOnClickListener { abrirDialogoRecuperacao() }
+
         btnAcessibilidade.setOnClickListener {
-            val textoParaFalar = "Ecrã de Login. Por favor, digite o seu email no primeiro campo e a sua senha no segundo campo. Depois, clique no botão Entrar."
-            falarTexto(textoParaFalar)
+            val texto = "Ecrã de Login. Se esqueceu sua senha, clique na opção 'Esqueci minha senha' abaixo do campo de senha."
+            falarTexto(texto)
         }
     }
 
-    // --- Lógica de Acessibilidade (TTS) ---
+    private fun abrirDialogoRecuperacao() {
+        val inputEmail = EditText(this)
+        inputEmail.hint = "Digite seu e-mail cadastrado"
+        inputEmail.inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            // Tenta configurar para Português
-            val result = tts.setLanguage(Locale("pt", "PT")) // Tenta PT-PT primeiro
-
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                // Se não tiver PT-PT, tenta PT-BR
-                val resultBR = tts.setLanguage(Locale("pt", "BR"))
-                if (resultBR == TextToSpeech.LANG_MISSING_DATA || resultBR == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TTS", "Idioma Português não suportado pelo aparelho.")
+        AlertDialog.Builder(this)
+            .setTitle("Recuperar Acesso")
+            .setMessage("Enviaremos uma nova senha para o seu e-mail.")
+            .setView(inputEmail)
+            .setPositiveButton("Enviar") { _, _ ->
+                val email = inputEmail.text.toString().trim()
+                if (email.isNotEmpty()) {
+                    enviarTokenEmail(email)
+                } else {
+                    Toast.makeText(this, "Digite um e-mail válido", Toast.LENGTH_SHORT).show()
                 }
             }
-        } else {
-            Log.e("TTS", "Falha na inicialização do áudio.")
-        }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
-    private fun falarTexto(texto: String) {
-        if (::tts.isInitialized) {
-            // O parâmetro QUEUE_FLUSH interrompe a fala anterior para falar a nova imediatamente
-            tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "")
-        }
+    private fun enviarTokenEmail(email: String) {
+        falarTexto("Enviando solicitação, aguarde.")
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(cred.ip)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val service = retrofit.create(UsuarioService::class.java)
+        val call = service.esqueciSenha(EmailRequest(email))
+
+        call.enqueue(object : Callback<GenericResponse> {
+            override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@LoginActivity, "Senha enviada! Verifique seu e-mail.", Toast.LENGTH_LONG).show()
+                    falarTexto("Sucesso. Verifique seu e-mail.")
+                } else {
+                    Toast.makeText(this@LoginActivity, "E-mail não encontrado.", Toast.LENGTH_SHORT).show()
+                    falarTexto("E-mail não encontrado no sistema.")
+                }
+            }
+
+            override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
+                Toast.makeText(this@LoginActivity, "Erro de conexão.", Toast.LENGTH_SHORT).show()
+                falarTexto("Erro de conexão com o servidor.")
+            }
+        })
     }
 
-    override fun onDestroy() {
-        // Encerra o serviço de fala ao fechar a tela para economizar bateria
-        if (::tts.isInitialized) {
-            tts.stop()
-            tts.shutdown()
-        }
-        super.onDestroy()
-    }
-
-    // --- Fim da Lógica de Acessibilidade ---
-
-    val cred = Credenciais()
     private fun realizarLogin() {
         val email = edtEmail.text.toString().trim()
         val senha = edtSenha.text.toString()
 
         if (email.isEmpty() || senha.isEmpty()) {
             Toast.makeText(this, "Preencha email e senha!", Toast.LENGTH_SHORT).show()
-            // Dica extra: Falar o erro também ajuda na acessibilidade
-            falarTexto("Erro. Preencha email e senha.")
             return
         }
 
@@ -127,18 +138,15 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .build()
 
         val service = retrofit.create(UsuarioService::class.java)
-
         val call = service.login(email, senha)
 
         call.enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
-                    val body = response.body()
-                    val usuario: Usuario? = body?.user
-
+                    val usuario = response.body()?.user
                     if (usuario != null) {
                         Toast.makeText(this@LoginActivity, "Bem-vindo!", Toast.LENGTH_LONG).show()
-                        falarTexto("Login realizado com sucesso. Bem-vindo.")
+                        falarTexto("Login realizado com sucesso.")
 
                         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
                         prefs.edit()
@@ -147,36 +155,41 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             .putString("user_email", usuario.email)
                             .apply()
 
-                        val it = Intent(this@LoginActivity, MenuActivity::class.java)
-                        startActivity(it)
+                        startActivity(Intent(this@LoginActivity, MenuActivity::class.java))
                         finish()
                     } else {
-                        Toast.makeText(this@LoginActivity, body?.message ?: "Resposta inesperada", Toast.LENGTH_SHORT).show()
-                        falarTexto("Erro no login. Verifique os dados.")
+                        Toast.makeText(this@LoginActivity, "Erro no login", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    when (response.code()) {
-                        401 -> {
-                            Toast.makeText(this@LoginActivity, "Credenciais inválidas", Toast.LENGTH_SHORT).show()
-                            falarTexto("Credenciais inválidas.")
-                        }
-                        else -> {
-                            val erro = response.errorBody()?.string()
-                            Toast.makeText(this@LoginActivity, "Erro ${response.code()}: ${erro ?: "Erro no servidor"}", Toast.LENGTH_LONG).show()
-                        }
-                    }
+                    Toast.makeText(this@LoginActivity, "Credenciais inválidas", Toast.LENGTH_SHORT).show()
+                    falarTexto("Senha ou email incorretos.")
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                Toast.makeText(this@LoginActivity, "Falha ao conectar: ${t.message}", Toast.LENGTH_LONG).show()
-                Log.d("Retrofit",t.message.toString())
-                falarTexto("Falha na conexão com a internet.")
+                Toast.makeText(this@LoginActivity, "Falha ao conectar", Toast.LENGTH_LONG).show()
+                falarTexto("Falha na conexão.")
             }
         })
     }
 
-    private fun enableEdgeToEdge() {
-        // Implementação vazia mantida do seu código original
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts.setLanguage(Locale("pt", "PT"))
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                tts.setLanguage(Locale("pt", "BR"))
+            }
+        }
+    }
+
+    private fun falarTexto(texto: String) {
+        if (::tts.isInitialized) {
+            tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, "")
+        }
+    }
+
+    override fun onDestroy() {
+        if (::tts.isInitialized) { tts.stop(); tts.shutdown() }
+        super.onDestroy()
     }
 }
