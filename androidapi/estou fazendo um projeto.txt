@@ -1,0 +1,47 @@
+estou fazendo um projeto android, e preciso de ajuda para fazer umas funções, ele consiste em um diario de calorias onde o usuario pode anotar calorias com base em informações adicionadas por ele ou do banco de dados, qual o fluxo do projeto, o usuario pode logar ou cadastrar com email, nome e senha para ter acesso a lista de calorias, nessa litsa ele pode ver calorias de até 7 dias atras, limitado pelo aplicativo, o banco salva todas adicionadas, o banco possui uma tabela de metas (que pode ser de calorias ou hidratação) essa tabela esta de 1:1 para o usuario o usuario pode ter no maximo 2 metas na tabela uma do tipo de calorias e outra do tipo de hidratação, essas metas servem para relatorios e um status de situação do usuario por dia, na tela de lista de calorias ainda temos a opção do usuario criar um grupo de alimentos(almoço, lanche, etc.) necessario para poder incluir alimentos ao longo do dia, isso só serve para organização do usuario o calculo para a meta é feito com o total de calorias dentro dos grupos diariamente, dentro dos grupos temos a opção de adicionar ou excluir alimentos e de excluir o grupo, para adicionar alimentos o usuariio clica em adicionar que encaminha para outra tela onde é necessario escrever em um edittext o alimento e clicar nos resultados da pesquisa que encaminhara para outra tela com os dados do aliemteno nome, caloria, porcao que poderão ser editados pelo usuario, se não achar o alimento na tela de pesquisa existe um button de adicionar novo alimento assim que adicionado o alimento aparecera dentro do grupo
+
+
+as tabelas afetadas são
+
+
+create table tb_alimentos_usuario(
+
+  id int auto_increment not null primary key,
+
+  usuario_id int not null ,
+
+  grupo_id int not null,
+
+  nome varchar(60) not null ,
+
+  caloria_base decimal(10,4) not null,
+
+  porcao_consumida decimal(10,4) not null,
+
+  porcao_base decimal(10,4) not null,
+
+  data_registro datetime not null
+
+)
+
+
+  create table grupo_alimentos_usuario(
+
+  id int auto_increment not null primary key,
+
+  usuario_id int not null ,
+
+  nome varchar(60) not null,
+
+  data_registro datetime not null
+
+)
+
+
+e ele faz a busca em tb_alimentos com dados ja cadastrados
+
+
+atualmente não tenho a função de adicionar e excluir alimentos e nem a de excluir o grupo, por enquanto só adiciono alimentos
+
+
+estou usando retrofit com um codigo em node.js me ajude a criar os funções e telas android e funções e node se precisar, ja tenho funções criadas e apiservices funcionando vamos fazer passo a passo com eu mandando o codigo existente e vc verificando

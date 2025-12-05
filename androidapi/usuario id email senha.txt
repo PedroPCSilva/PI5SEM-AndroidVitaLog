@@ -1,0 +1,7 @@
+usuario - id, email, senha, nome, sobrenome, cpf, data_nascimento, peso, altura
+alimentos - id, nome, calorias, porção - calculo = (calorias_usuario/porcao_alimentos)*cal_base
+hidratação_usuario - id, usuario_id, quantidade, data_registro
+alimentos_usuario - id, usuario_id, grupo_id, nome, calorias, porcao_consumida,porcao_base data_registro
+grupo_alimentos_usuario - id, usuario_id, nome, total_kg, total_cal
+metas_usuario - id, usuario_id, tipo, meta, data_registro
+

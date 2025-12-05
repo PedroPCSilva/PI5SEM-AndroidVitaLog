@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".MyApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/logo_inicio_vitalog"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.VitalogFinal"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".view.menu.perfil.AlterarSenhaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.perfil.EditarDadosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.perfil.PerfilActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.perfil.CompletarCadastroActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.meta.MetasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.diario.FormularioAlimentoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.diario.PesquisaAlimentoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.diario.CriarGrupoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.menu.diario.DetalhesGrupoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.menu.MenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CadastroActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>
