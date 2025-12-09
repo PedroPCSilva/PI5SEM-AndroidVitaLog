@@ -11,12 +11,13 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/logo_inicio_vitalog"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/logo_inicio_vitalog"
+
         android:supportsRtl="true"
         android:theme="@style/Theme.VitalogFinal"
         android:usesCleartextTraffic="true" >
         <activity
-            android:name=".AlterarSenhaActivity"
+            android:name=".view.menu.perfil.AlterarSenhaActivity"
             android:exported="false" />
         <activity
             android:name=".view.menu.perfil.EditarDadosActivity"

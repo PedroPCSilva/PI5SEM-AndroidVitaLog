@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton // <--- IMPORTANTE
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -35,22 +36,23 @@ class DetalhesGrupoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detalhes_grupo)
 
-        // 1. Pegar dados da intent
         grupoId = intent.getIntExtra("grupoId", 0)
         grupoNome = intent.getStringExtra("grupoNome") ?: ""
 
         val txtNomeGrupo = findViewById<TextView>(R.id.txt_nome_grupo)
+        // Adicionei este para mostrar o total
+        val txtTotalCalorias = findViewById<TextView>(R.id.txt_total_grupo)
+
         val recycler = findViewById<RecyclerView>(R.id.recycler_alimentos)
         val btnAdd = findViewById<Button>(R.id.btn_add_alimento)
-        val btnApagarGrupo = findViewById<Button>(R.id.btn_apagar_grupo)
-        val btnVoltar = findViewById<Button>(R.id.btn_voltar)
+
+        // CORREÇÃO: No XML eles são ImageButton, não Button
+        val btnApagarGrupo = findViewById<ImageButton>(R.id.btn_apagar_grupo)
+        val btnVoltar = findViewById<ImageButton>(R.id.btn_voltar)
 
         txtNomeGrupo.text = grupoNome
 
-
-        btnVoltar.setOnClickListener {
-            finish()
-        }
+        btnVoltar.setOnClickListener { finish() }
 
         adapter = AlimentosAdapter(emptyList()) { alimento ->
             confirmarExclusaoAlimento(alimento)
@@ -59,6 +61,7 @@ class DetalhesGrupoActivity : AppCompatActivity() {
         recycler.adapter = adapter
         recycler.layoutManager = LinearLayoutManager(this)
 
+        // Configuração do Retrofit e ViewModel
         val cred = Credenciais()
         val retrofit = Retrofit.Builder()
             .baseUrl(cred.ip)
@@ -72,27 +75,25 @@ class DetalhesGrupoActivity : AppCompatActivity() {
 
         viewModel.alimentos.observe(this) { lista ->
             adapter.update(lista)
+
+            // Lógica para somar e exibir o total de calorias do grupo
+            val total = lista.sumOf { (it.caloria_base / it.porcao_base) * it.porcao_consumida }
+            txtTotalCalorias.text = String.format("Total: %.0f kcal", total)
         }
 
-        btnAdd.setOnClickListener {
-            adicionarAlimento()
-        }
-
-        btnApagarGrupo.setOnClickListener {
-            confirmarExclusaoGrupo()
-        }
+        btnAdd.setOnClickListener { adicionarAlimento() }
+        btnApagarGrupo.setOnClickListener { confirmarExclusaoGrupo() }
     }
 
     override fun onResume() {
         super.onResume()
-        carregarDados()
-    }
-
-    private fun carregarDados() {
         if (grupoId != 0) {
             lifecycleScope.launch {
                 viewModel.carregar(grupoId)
             }
+        } else {
+            Toast.makeText(this, "Erro: Grupo inválido", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
@@ -101,7 +102,7 @@ class DetalhesGrupoActivity : AppCompatActivity() {
         val usuarioId = prefs.getInt("user_id", 0)
 
         if (usuarioId == 0) {
-            Toast.makeText(this, "Erro: Usuário não identificado.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Sessão expirada.", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -114,7 +115,7 @@ class DetalhesGrupoActivity : AppCompatActivity() {
     private fun confirmarExclusaoAlimento(alimento: FoodModel) {
         AlertDialog.Builder(this)
             .setTitle("Excluir Alimento")
-            .setMessage("Deseja remover '${alimento.nome}' deste grupo?")
+            .setMessage("Deseja remover '${alimento.nome}'?")
             .setPositiveButton("Apagar") { _, _ ->
                 executarExclusaoAlimento(alimento.id)
             }
@@ -128,14 +129,12 @@ class DetalhesGrupoActivity : AppCompatActivity() {
                 val sucesso = viewModel.apagarAlimento(alimentoId)
                 if (sucesso) {
                     Toast.makeText(this@DetalhesGrupoActivity, "Alimento removido!", Toast.LENGTH_SHORT).show()
-                    // Recarrega a lista para o alimento sumir da tela
-                    carregarDados()
+                    viewModel.carregar(grupoId)
                 } else {
-                    Toast.makeText(this@DetalhesGrupoActivity, "Erro ao remover alimento.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetalhesGrupoActivity, "Erro ao remover.", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this@DetalhesGrupoActivity, "Erro de conexão.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -143,7 +142,7 @@ class DetalhesGrupoActivity : AppCompatActivity() {
     private fun confirmarExclusaoGrupo() {
         AlertDialog.Builder(this)
             .setTitle("Excluir Grupo")
-            .setMessage("Tem certeza que deseja apagar o grupo '$grupoNome'? Todos os alimentos serão perdidos.")
+            .setMessage("Apagar o grupo '$grupoNome' e todos os seus alimentos?")
             .setPositiveButton("Sim, Apagar") { _, _ ->
                 executarExclusaoGrupo()
             }
@@ -156,13 +155,11 @@ class DetalhesGrupoActivity : AppCompatActivity() {
             try {
                 val sucesso = viewModel.apagarGrupo(grupoId)
                 if (sucesso) {
-                    Toast.makeText(this@DetalhesGrupoActivity, "Grupo removido!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     Toast.makeText(this@DetalhesGrupoActivity, "Erro ao apagar grupo.", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 Toast.makeText(this@DetalhesGrupoActivity, "Erro de conexão.", Toast.LENGTH_SHORT).show()
             }
         }

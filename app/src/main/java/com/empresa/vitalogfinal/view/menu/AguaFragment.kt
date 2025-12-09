@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton // Importante
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -29,8 +30,10 @@ import com.empresa.vitalogfinal.view.menu.ui.AguaViewModel
 import com.empresa.vitalogfinal.view.menu.ui.AguaViewModelFactory
 import kotlinx.coroutines.launch
 import org.threeten.bp.LocalDate
+import org.threeten.bp.format.DateTimeFormatter
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Locale
 
 class AguaFragment : Fragment() {
 
@@ -46,22 +49,33 @@ class AguaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         val prefs = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         usuarioId = prefs.getInt("user_id", 0)
-
 
         val txtData = view.findViewById<TextView>(R.id.txt_agua_data)
         val txtTotal = view.findViewById<TextView>(R.id.txt_agua_total)
         val recycler = view.findViewById<RecyclerView>(R.id.recycler_agua)
         val btnAdd = view.findViewById<Button>(R.id.btn_add_agua)
-        val btnPrev = view.findViewById<Button>(R.id.btn_agua_prev)
-        val btnNext = view.findViewById<Button>(R.id.btn_agua_next)
 
+        // Atualizado para ImageButton
+        val btnPrev = view.findViewById<ImageButton>(R.id.btn_agua_prev)
+        val btnNext = view.findViewById<ImageButton>(R.id.btn_agua_next)
 
         val progressBar = view.findViewById<ProgressBar>(R.id.progress_agua)
         val txtStatusMeta = view.findViewById<TextView>(R.id.txt_status_meta)
 
+        // Configurar botões rápidos (se existirem no XML)
+        // DICA: Adicione android:id="@+id/btn_200ml" no XML se não tiver
+        try {
+            val btn200 = view.findViewById<Button>(R.id.btn_200ml) // Supondo ID
+            val btn500 = view.findViewById<Button>(R.id.btn_500ml) // Supondo ID
+
+            // Se o ID não existir, vai cair no catch e não quebra o app
+            if (btn200 != null) btn200.setOnClickListener { adicionarRapido(200.0) }
+            if (btn500 != null) btn500.setOnClickListener { adicionarRapido(500.0) }
+        } catch (e: Exception) {
+            // Ignora se não achar os botões
+        }
 
         val cred = Credenciais()
         val retrofit = Retrofit.Builder()
@@ -69,14 +83,12 @@ class AguaFragment : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-
         val serviceAgua = retrofit.create(HidratacaoService::class.java)
-        val serviceMeta = retrofit.create(MetaService::class.java) // <--- Novo
+        val serviceMeta = retrofit.create(MetaService::class.java)
 
         val repoAgua = HidratacaoRepository(serviceAgua)
-        val repoMeta = MetaRepository(serviceMeta) // <--- Novo
+        val repoMeta = MetaRepository(serviceMeta)
 
-        // ViewModel com Factory atualizada
         viewModel = ViewModelProvider(
             this,
             AguaViewModelFactory(repoAgua, repoMeta)
@@ -88,8 +100,6 @@ class AguaFragment : Fragment() {
         recycler.layoutManager = LinearLayoutManager(requireContext())
         recycler.adapter = adapter
 
-
-
         viewModel.lista.observe(viewLifecycleOwner) {
             adapter.updateList(it)
         }
@@ -99,32 +109,40 @@ class AguaFragment : Fragment() {
             atualizarBarra(progressBar, txtStatusMeta, total, metaAtual)
 
             val totalStr = if (total % 1.0 == 0.0) String.format("%.0f", total) else total.toString()
-            txtTotal.text = "Total: $totalStr ml"
+            txtTotal.text = "$totalStr ml"
         }
 
-        // Observa META e atualiza a barra
         viewModel.metaDiaria.observe(viewLifecycleOwner) { meta ->
             val totalAtual = viewModel.total.value ?: 0.0
             atualizarBarra(progressBar, txtStatusMeta, totalAtual, meta)
         }
 
-        txtData.text = selectedDate.toString()
+        atualizarTextoData(txtData)
         carregarDados()
 
         btnPrev.setOnClickListener {
             selectedDate = selectedDate.minusDays(1)
-            txtData.text = selectedDate.toString()
+            atualizarTextoData(txtData)
             carregarDados()
         }
 
         btnNext.setOnClickListener {
             selectedDate = selectedDate.plusDays(1)
-            txtData.text = selectedDate.toString()
+            atualizarTextoData(txtData)
             carregarDados()
         }
 
         btnAdd.setOnClickListener {
             mostrarDialogAdicionar()
+        }
+    }
+
+    private fun atualizarTextoData(txt: TextView) {
+        val formatter = DateTimeFormatter.ofPattern("dd MMM", Locale("pt", "BR"))
+        if (selectedDate == LocalDate.now()) {
+            txt.text = "Hoje"
+        } else {
+            txt.text = selectedDate.format(formatter)
         }
     }
 
@@ -134,13 +152,12 @@ class AguaFragment : Fragment() {
 
         val tStr = String.format("%.0f", total)
         val mStr = String.format("%.0f", meta)
-        txt.text = "$tStr / $mStr ml"
-
+        txt.text = "Meta: $mStr ml"
 
         if (total >= meta) {
-            bar.progressTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.GREEN)
+            bar.progressTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#4CAF50"))
         } else {
-            bar.progressTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#2196F3"))
+            bar.progressTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#29B6F6"))
         }
     }
 
@@ -148,6 +165,16 @@ class AguaFragment : Fragment() {
         if (usuarioId != 0) {
             lifecycleScope.launch {
                 viewModel.carregarDados(usuarioId, selectedDate.toString())
+            }
+        }
+    }
+
+    private fun adicionarRapido(qtd: Double) {
+        lifecycleScope.launch {
+            val ok = viewModel.adicionarAgua(usuarioId, qtd)
+            if (ok) {
+                Toast.makeText(requireContext(), "+${qtd.toInt()}ml", Toast.LENGTH_SHORT).show()
+                carregarDados()
             }
         }
     }
@@ -200,9 +227,9 @@ class AguaFragment : Fragment() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
     override fun onResume() {
         super.onResume()
-
         carregarDados()
     }
 }

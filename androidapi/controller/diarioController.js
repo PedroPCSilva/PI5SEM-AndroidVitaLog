@@ -14,13 +14,34 @@ function queryPromise(sql) {
 // LISTAR GRUPOS DO DIA
 // ========================
 async function listarGrupos(data) {
+    // 1. Tenta buscar os grupos existentes
     let sql = `
         SELECT * FROM grupo_alimentos_usuario
         WHERE usuario_id = ${data.usuario_id}
         AND DATE(data_registro) = '${data.data}'
-        ORDER BY data_registro ASC
-    `;
-    return queryPromise(sql);
+        ORDER BY id ASC
+    `; // Mudei order by para ID para manter a ordem de criação (Café -> Jantar)
+    
+    let grupos = await queryPromise(sql);
+
+    // 2. Se a lista estiver vazia (usuário abriu um dia novo), cria os padrões
+    if (grupos.length === 0) {
+        console.log("Dia vazio! Criando refeições padrão...");
+        
+        const padroes = ["Café da Manhã", "Almoço", "Lanche da Tarde", "Jantar"];
+        
+        for (const nomeRefeicao of padroes) {
+            await queryPromise(`
+                INSERT INTO grupo_alimentos_usuario (usuario_id, nome, data_registro)
+                VALUES (${data.usuario_id}, '${nomeRefeicao}', '${data.data} 12:00:00')
+            `);
+        }
+
+        // Busca de novo para retornar a lista preenchida
+        grupos = await queryPromise(sql);
+    }
+
+    return grupos;
 }
 
 // ================================
@@ -71,14 +92,18 @@ async function buscarGrupoPorId(id) {
 }
 
 async function obterTotalCalorias(usuario_id, data) {
-    // Fórmula: (caloria_base / porcao_base) * porcao_consumida
+    // A função COALESCE garante que se a soma for NULL, ele retorna 0
+    // Também adicionei proteção contra divisão por zero no banco
     let sql = `
-        SELECT SUM((caloria_base / porcao_base) * porcao_consumida) as total
+        SELECT COALESCE(SUM((caloria_base / NULLIF(porcao_base, 0)) * porcao_consumida), 0) as total
         FROM tb_alimentos_usuario
         WHERE usuario_id = ${usuario_id}
         AND DATE(data_registro) = '${data}'
     `;
-    return queryPromise(sql);
+    
+    // Pequeno ajuste para garantir que retornamos o valor exato dentro do objeto
+    const resultado = await queryPromise(sql);
+    return resultado[0]; 
 }
 
 module.exports = {

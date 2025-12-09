@@ -3,26 +3,23 @@ package com.empresa.vitalogfinal.service
 import com.empresa.vitalogfinal.model.usuario.CadastroRequest
 import com.empresa.vitalogfinal.model.usuario.CadastroResponse
 import com.empresa.vitalogfinal.model.usuario.LoginResponse
-import com.empresa.vitalogfinal.model.usuario.SenhaUpdateRequest // <--- Importe Importante
+import com.empresa.vitalogfinal.model.usuario.SenhaUpdateRequest
 import com.empresa.vitalogfinal.model.usuario.Usuario
 import com.empresa.vitalogfinal.model.usuario.UsuarioUpdateRequest
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.PATCH // <--- Importe do PATCH
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+
 data class EmailRequest(val email: String)
 data class GenericResponse(val success: Boolean, val message: String)
 
-data class AlterarSenhaRequest(
-    val senha_atual: String,
-    val nova_senha: String
-)
-
+// Interface limpa e sem duplicatas
 interface UsuarioService {
 
     @GET("usuario/login")
@@ -45,6 +42,7 @@ interface UsuarioService {
         @Body dados: UsuarioUpdateRequest
     ): Response<Map<String, String>>
 
+    // Mantida APENAS esta versão suspend para evitar crash do Retrofit
     @PATCH("usuario/senha/{id}")
     suspend fun alterarSenha(
         @Path("id") id: Int,
@@ -53,10 +51,4 @@ interface UsuarioService {
 
     @POST("/api/esqueci-senha")
     fun esqueciSenha(@Body body: EmailRequest): Call<GenericResponse>
-
-    @PATCH("/usuario/senha/{id}")
-    fun alterarSenha(
-        @Path("id") id: Int,
-        @Body body: AlterarSenhaRequest
-    ): Call<GenericResponse>
 }

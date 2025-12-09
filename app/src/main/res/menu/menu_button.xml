@@ -3,16 +3,19 @@
 
     <item
         android:id="@+id/nav_diario"
+        android:icon="@android:drawable/ic_menu_agenda"
         android:title="Diário"
         android:orderInCategory="100" />
 
     <item
         android:id="@+id/nav_agua"
+        android:icon="@android:drawable/ic_menu_report_image"
         android:title="Água"
         android:orderInCategory="101" />
 
     <item
         android:id="@+id/nav_relatorio"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="Relatório"
         android:orderInCategory="102" />
 

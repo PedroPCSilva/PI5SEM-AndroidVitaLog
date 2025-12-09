@@ -1,55 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="#F5F7FA">
 
-    <!-- Botão Voltar -->
-    <Button
-        android:id="@+id/btn_voltar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="← Voltar"
-        android:layout_gravity="start"
-        android:padding="8dp"
-        android:layout_marginBottom="12dp"/>
-
-    <!-- Título com nome do grupo -->
-    <TextView
-        android:id="@+id/txt_nome_grupo"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="8dp" />
+        android:padding="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Botão para apagar grupo -->
-    <Button
-        android:id="@+id/btn_apagar_grupo"
-        android:layout_width="wrap_content"
+        <ImageButton
+            android:id="@+id/btn_voltar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="#333333"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/txt_nome_grupo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:text="Nome do Grupo"
+            app:layout_constraintStart_toEndOf="@id/btn_voltar"
+            app:layout_constraintEnd_toStartOf="@id/btn_apagar_grupo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/btn_apagar_grupo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#FF5252"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_resumo"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Apagar Grupo"
-        android:layout_gravity="center"
-        android:backgroundTint="@android:color/holo_red_light"
-        android:textColor="@android:color/white"
-        android:padding="8dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_margin="16dp"
+        app:cardCornerRadius="10dp"
+        app:cardBackgroundColor="#E0F7FA"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header">
 
-    <!-- RecyclerView Alimentos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/txt_total_grupo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total: 0 kcal"
+                android:textColor="#006064"
+                android:textStyle="bold"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_alimentos"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:paddingTop="8dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/card_resumo"
+        app:layout_constraintBottom_toTopOf="@id/btn_add_alimento"
+        app:layout_constraintVertical_bias="0.0"/>
 
-    <!-- Botão adicionar alimento -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_add_alimento"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:layout_margin="16dp"
         android:text="+ Adicionar alimento"
-        android:padding="16dp" />
+        android:textSize="16sp"
+        app:cornerRadius="30dp"
+        app:backgroundTint="#11C5C2"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

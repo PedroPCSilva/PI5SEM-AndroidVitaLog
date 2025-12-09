@@ -1,5 +1,6 @@
 package com.empresa.vitalogfinal.view.menu.diario
 
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -7,6 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.empresa.vitalogfinal.R
@@ -17,11 +19,13 @@ import com.empresa.vitalogfinal.service.AlimentoService
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class FormularioAlimentoActivity : AppCompatActivity() {
 
     private lateinit var repository: AlimentoRepository
-
     private var usuarioId = 0
     private var grupoId = 0
 
@@ -39,12 +43,12 @@ class FormularioAlimentoActivity : AppCompatActivity() {
         val txtTotal = findViewById<TextView>(R.id.txt_resultado_calculo)
         val btnSalvar = findViewById<Button>(R.id.btn_salvar_alimento)
 
+        // Preenche dados se vier da pesquisa
         val nomeExtra = intent.getStringExtra("nome")
         if (nomeExtra != null) {
             edtNome.setText(nomeExtra)
             edtPorcaoBase.setText(intent.getDoubleExtra("porcao_base", 100.0).toString())
             edtCaloriaBase.setText(intent.getDoubleExtra("caloria_base", 0.0).toString())
-
             edtConsumido.requestFocus()
         }
 
@@ -95,6 +99,10 @@ class FormularioAlimentoActivity : AppCompatActivity() {
     }
 
     private fun salvarNoBanco(nome: String, calBase: Double, porcaoBase: Double, consumido: Double) {
+        // Gera data atual no formato SQL (AAAA-MM-DD)
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dataHoje = sdf.format(Date())
+
         val novoAlimento = FoodModel(
             id = 0,
             usuario_id = usuarioId,
@@ -103,16 +111,21 @@ class FormularioAlimentoActivity : AppCompatActivity() {
             caloria_base = calBase,
             porcao_consumida = consumido,
             porcao_base = porcaoBase,
-            data_registro = ""
+            data_registro = dataHoje // <--- AGORA ENVIA DATA CORRETA
         )
 
         lifecycleScope.launch {
-            val sucesso = repository.salvar(novoAlimento)
-            if (sucesso) {
-                Toast.makeText(this@FormularioAlimentoActivity, "Alimento Adicionado!", Toast.LENGTH_SHORT).show()
-                finish() // Volta para a tela anterior
-            } else {
-                Toast.makeText(this@FormularioAlimentoActivity, "Erro ao salvar", Toast.LENGTH_SHORT).show()
+            try {
+                val sucesso = repository.salvar(novoAlimento)
+                if (sucesso) {
+                    Toast.makeText(this@FormularioAlimentoActivity, "Alimento Adicionado!", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Toast.makeText(this@FormularioAlimentoActivity, "Erro no servidor ao salvar", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@FormularioAlimentoActivity, "Erro de conexão: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

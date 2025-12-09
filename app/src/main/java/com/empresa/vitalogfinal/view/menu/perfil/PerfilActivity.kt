@@ -5,73 +5,66 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.empresa.vitalogfinal.LoginActivity
+import com.empresa.vitalogfinal.LoginActivity // Ajuste se seu Login estiver em outra pasta
 import com.empresa.vitalogfinal.R
 import com.empresa.vitalogfinal.credenciais.Credenciais
 import com.empresa.vitalogfinal.service.UsuarioService
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.empresa.vitalogfinal.AlterarSenhaActivity
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class PerfilActivity : AppCompatActivity() {
-
-    private lateinit var txtNome: TextView
-    private lateinit var txtEmail: TextView
-    private lateinit var txtPeso: TextView
-    private lateinit var txtAltura: TextView
-    private lateinit var txtNasc: TextView
-
-    private var usuarioId = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
 
-        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        usuarioId = prefs.getInt("user_id", 0)
-
-        txtNome = findViewById(R.id.txt_perfil_nome)
-        txtEmail = findViewById(R.id.txt_perfil_email)
-        txtPeso = findViewById(R.id.txt_perfil_peso)
-        txtAltura = findViewById(R.id.txt_perfil_altura)
-        txtNasc = findViewById(R.id.txt_perfil_nasc)
+        // IDs baseados no seu XML "activity_perfil.xml"
+        val txtNome = findViewById<TextView>(R.id.txt_perfil_nome)
+        val txtEmail = findViewById<TextView>(R.id.txt_perfil_email)
+        val txtPeso = findViewById<TextView>(R.id.txt_perfil_peso)
+        val txtAltura = findViewById<TextView>(R.id.txt_perfil_altura)
+        val txtIdade = findViewById<TextView>(R.id.txt_perfil_nasc) // Usado para idade
 
         val btnEditar = findViewById<Button>(R.id.btn_editar_perfil)
-        val btnAlterarSenha = findViewById<Button>(R.id.btn_alterar_senha) // Novo botão
-        val btnSair = findViewById<Button>(R.id.btn_sair_app)
+        val btnAlterarSenha = findViewById<Button>(R.id.btn_alterar_senha)
+        val btnSair = findViewById<Button>(R.id.btn_sair_app) // ID corrigido
 
-
-        btnEditar.setOnClickListener {
-            startActivity(Intent(this, EditarDadosActivity::class.java))
-        }
+        carregarDadosUsuario(txtNome, txtEmail, txtPeso, txtAltura, txtIdade)
 
         btnAlterarSenha.setOnClickListener {
-            startActivity(Intent(this, AlterarSenhaActivity::class.java))
+            // Garante que importou a activity correta no topo ou está no mesmo pacote
+            val intent = Intent(this, AlterarSenhaActivity::class.java)
+            startActivity(intent)
+        }
+
+        btnEditar.setOnClickListener {
+            val intent = Intent(this, EditarDadosActivity::class.java)
+            startActivity(intent)
         }
 
         btnSair.setOnClickListener {
-            prefs.edit().clear().apply()
-
-            val intent = Intent(this, LoginActivity::class.java)
-
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+            fazerLogout()
         }
-
-        carregarDados()
     }
 
-    override fun onResume() {
-        super.onResume()
-        carregarDados()
-    }
+    private fun carregarDadosUsuario(
+        txtNome: TextView,
+        txtEmail: TextView,
+        txtPeso: TextView,
+        txtAltura: TextView,
+        txtIdade: TextView
+    ) {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val id = prefs.getInt("user_id", 0)
 
-    private fun carregarDados() {
+        if (id == 0) return
+
         val cred = Credenciais()
         val retrofit = Retrofit.Builder()
             .baseUrl(cred.ip)
@@ -81,23 +74,63 @@ class PerfilActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = service.getPerfil(usuarioId)
+                val response = service.getPerfil(id)
                 if (response.isSuccessful) {
-                    val user = response.body()
-                    if (user != null) {
-                        txtNome.text = "${user.nome} ${user.sobrenome ?: ""}"
-                        txtEmail.text = user.email
+                    val usuario = response.body()
+                    if (usuario != null) {
+                        txtNome.text = usuario.nome
+                        txtEmail.text = usuario.email
 
-                        txtPeso.text = if (user.peso != null) "${user.peso} kg" else "--"
-                        txtAltura.text = if (user.altura != null) "${user.altura} m" else "--"
-                        txtNasc.text = user.data_nascimento ?: "--/--/--"
+                        // Exibindo dados extras (se existirem no seu objeto Usuario)
+                        // Converta para String e trate nulos
+                        txtPeso.text = "${usuario.peso ?: "--"} kg"
+                        txtAltura.text = "${usuario.altura ?: "--"} m"
+
+                        // Calculo simples de idade se houver data de nascimento
+                        txtIdade.text = calcularIdade(usuario.data_nascimento)
                     }
-                } else {
-                    Toast.makeText(this@PerfilActivity, "Erro ao carregar perfil", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@PerfilActivity, "Erro de conexão", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+                txtNome.text = "Erro de conexão"
             }
         }
+    }
+
+    private fun calcularIdade(dataNascString: String?): String {
+        if (dataNascString.isNullOrEmpty()) return "--"
+        return try {
+            // Supondo que a data venha como "yyyy-MM-dd" ou "dd/MM/yyyy"
+            // Ajuste o padrão conforme seu banco de dados
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dataNasc = sdf.parse(dataNascString)
+
+            if (dataNasc != null) {
+                val hoje = Calendar.getInstance()
+                val nasc = Calendar.getInstance()
+                nasc.time = dataNasc
+
+                var idade = hoje.get(Calendar.YEAR) - nasc.get(Calendar.YEAR)
+                if (hoje.get(Calendar.DAY_OF_YEAR) < nasc.get(Calendar.DAY_OF_YEAR)) {
+                    idade--
+                }
+                "$idade anos"
+            } else {
+                "--"
+            }
+        } catch (e: Exception) {
+            "--"
+        }
+    }
+
+    private fun fazerLogout() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
+
+        // Verifique se sua LoginActivity está na raiz ou em view.Login
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

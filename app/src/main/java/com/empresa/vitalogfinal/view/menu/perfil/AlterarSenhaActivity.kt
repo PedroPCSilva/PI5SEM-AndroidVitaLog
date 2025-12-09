@@ -1,18 +1,18 @@
-package com.empresa.vitalogfinal
+package com.empresa.vitalogfinal.view.menu.perfil
 
 import android.content.Context
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.empresa.vitalogfinal.R
 import com.empresa.vitalogfinal.credenciais.Credenciais
-import com.empresa.vitalogfinal.service.AlterarSenhaRequest
-import com.empresa.vitalogfinal.service.GenericResponse
+import com.empresa.vitalogfinal.model.usuario.SenhaUpdateRequest
 import com.empresa.vitalogfinal.service.UsuarioService
-import com.google.android.material.textfield.TextInputEditText
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -22,42 +22,44 @@ class AlterarSenhaActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_alterar_senha)
 
-        val edtSenhaAtual = findViewById<TextInputEditText>(R.id.edtSenhaAtual)
-        val edtNovaSenha = findViewById<TextInputEditText>(R.id.edtNovaSenha)
-        val edtConfirmarSenha = findViewById<TextInputEditText>(R.id.edtConfirmarSenha)
-        val btnSalvar = findViewById<Button>(R.id.btnSalvarSenha)
-        val btnCancelar = findViewById<Button>(R.id.btnCancelar)
+        // Agora estes IDs existem no XML corrigido acima
+        val btnVoltar = findViewById<ImageButton>(R.id.btn_voltar_senha)
+        val edtSenhaAtual = findViewById<EditText>(R.id.edt_senha_atual)
+        val edtNovaSenha = findViewById<EditText>(R.id.edt_nova_senha)
+        val edtConfirmarSenha = findViewById<EditText>(R.id.edt_confirmar_senha)
+        val btnSalvar = findViewById<Button>(R.id.btn_salvar_senha)
 
-        btnCancelar.setOnClickListener { finish() }
+        btnVoltar.setOnClickListener { finish() }
 
         btnSalvar.setOnClickListener {
-            val atual = edtSenhaAtual.text.toString()
-            val nova = edtNovaSenha.text.toString()
+            val senhaAtual = edtSenhaAtual.text.toString()
+            val novaSenha = edtNovaSenha.text.toString()
             val confirmar = edtConfirmarSenha.text.toString()
 
-            if (atual.isEmpty() || nova.isEmpty() || confirmar.isEmpty()) {
+            if (senhaAtual.isEmpty() || novaSenha.isEmpty() || confirmar.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            if (nova != confirmar) {
-                Toast.makeText(this, "As senhas novas não coincidem", Toast.LENGTH_SHORT).show()
+            if (novaSenha != confirmar) {
+                Toast.makeText(this, "As senhas não conferem", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            salvarNovaSenha(atual, nova)
+            // Recupera ID do usuário salvo
+            val sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            val usuarioId = sharedPrefs.getInt("user_id", 0)
+
+            if (usuarioId == 0) {
+                Toast.makeText(this, "Erro de sessão. Faça login novamente.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            alterarSenhaNoServidor(usuarioId, senhaAtual, novaSenha)
         }
     }
 
-    private fun salvarNovaSenha(senhaAtual: String, novaSenha: String) {
-        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val userId = prefs.getInt("user_id", 0)
-
-        if (userId == 0) {
-            Toast.makeText(this, "Erro: Usuário não identificado.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
+    private fun alterarSenhaNoServidor(id: Int, atual: String, nova: String) {
         val cred = Credenciais()
         val retrofit = Retrofit.Builder()
             .baseUrl(cred.ip)
@@ -65,25 +67,27 @@ class AlterarSenhaActivity : AppCompatActivity() {
             .build()
 
         val service = retrofit.create(UsuarioService::class.java)
-        val request = AlterarSenhaRequest(senhaAtual, novaSenha)
 
-        service.alterarSenha(userId, request).enqueue(object : Callback<GenericResponse> {
-            override fun onResponse(call: Call<GenericResponse>, response: Response<GenericResponse>) {
+        val dados = SenhaUpdateRequest(
+            senha_atual = atual,
+            nova_senha = nova
+        )
+
+        lifecycleScope.launch {
+            try {
+                val response = service.alterarSenha(id, dados)
+
                 if (response.isSuccessful) {
-                    Toast.makeText(applicationContext, "Senha alterada com sucesso!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AlterarSenhaActivity, "Senha alterada com sucesso!", Toast.LENGTH_LONG).show()
                     finish()
                 } else {
-                    if (response.code() == 401) {
-                        Toast.makeText(applicationContext, "A senha atual está incorreta.", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(applicationContext, "Erro ao alterar senha.", Toast.LENGTH_SHORT).show()
-                    }
+                    val errorMsg = response.errorBody()?.string() ?: "Erro ao alterar senha"
+                    Toast.makeText(this@AlterarSenhaActivity, "Falha: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@AlterarSenhaActivity, "Erro de conexão.", Toast.LENGTH_SHORT).show()
             }
-
-            override fun onFailure(call: Call<GenericResponse>, t: Throwable) {
-                Toast.makeText(applicationContext, "Erro de conexão.", Toast.LENGTH_SHORT).show()
-            }
-        })
+        }
     }
 }

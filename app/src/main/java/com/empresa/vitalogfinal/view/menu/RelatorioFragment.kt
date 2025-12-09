@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -27,15 +26,17 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import kotlinx.coroutines.launch
-import org.threeten.bp.LocalDate
-import org.threeten.bp.format.DateTimeFormatter
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class RelatorioFragment : Fragment() {
 
     private lateinit var layoutFaltando: LinearLayout
-    private lateinit var layoutConteudo: ScrollView
+    // CORREÇÃO: O ID layout_relatorio_conteudo no XML agora é um LinearLayout
+    private lateinit var layoutConteudo: LinearLayout
+
     private lateinit var txtImc: TextView
     private lateinit var txtClassImc: TextView
     private lateinit var txtAguaIdeal: TextView
@@ -47,6 +48,7 @@ class RelatorioFragment : Fragment() {
     private var usuarioId = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        // Certifique-se de que está usando o XML corrigido que enviei anteriormente
         return inflater.inflate(R.layout.fragment_relatorio, container, false)
     }
 
@@ -58,10 +60,12 @@ class RelatorioFragment : Fragment() {
 
         // Bind Views
         layoutFaltando = view.findViewById(R.id.layout_dados_faltando)
-        layoutConteudo = view.findViewById(R.id.layout_relatorio_conteudo)
+        layoutConteudo = view.findViewById(R.id.layout_relatorio_conteudo) // Agora isso é seguro
+
         txtImc = view.findViewById(R.id.txt_valor_imc)
         txtClassImc = view.findViewById(R.id.txt_class_imc)
         txtAguaIdeal = view.findViewById(R.id.txt_agua_ideal)
+
         chartCalorias = view.findViewById(R.id.chart_calorias)
         chartAgua = view.findViewById(R.id.chart_agua)
 
@@ -80,7 +84,10 @@ class RelatorioFragment : Fragment() {
 
     private fun verificarPerfil() {
         val cred = Credenciais()
-        val retrofit = Retrofit.Builder().baseUrl(cred.ip).addConverterFactory(GsonConverterFactory.create()).build()
+        val retrofit = Retrofit.Builder()
+            .baseUrl(cred.ip)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
         val serviceUser = retrofit.create(UsuarioService::class.java)
 
         lifecycleScope.launch {
@@ -89,13 +96,14 @@ class RelatorioFragment : Fragment() {
                 if (response.isSuccessful) {
                     val user = response.body()
                     if (user != null) {
+                        // Verifica se tem peso e altura válidos
                         if (user.peso != null && user.altura != null && user.peso > 0 && user.altura > 0) {
                             layoutFaltando.visibility = View.GONE
                             layoutConteudo.visibility = View.VISIBLE
 
                             calcularEstatisticas(user.peso, user.altura)
 
-                            // Carrega gráficos
+                            // Carrega gráficos apenas se o perfil estiver completo
                             carregarGraficos(retrofit)
                         } else {
                             layoutFaltando.visibility = View.VISIBLE
@@ -103,7 +111,9 @@ class RelatorioFragment : Fragment() {
                         }
                     }
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -153,7 +163,9 @@ class RelatorioFragment : Fragment() {
                     configurarGrafico(chartCalorias, listaDias, metaCaloria, isCaloria = true)
                     configurarGrafico(chartAgua, listaDias, metaAgua, isCaloria = false)
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -169,8 +181,8 @@ class RelatorioFragment : Fragment() {
             val valor = if (isCaloria) dia.total_calorias.toFloat() else dia.total_agua.toFloat()
             entries.add(BarEntry(index.toFloat(), valor))
 
-
             try {
+                // Parse de data usando java.time (padrão Android)
                 val date = LocalDate.parse(dia.data_reg.substring(0, 10))
                 val formatter = DateTimeFormatter.ofPattern("dd/MM")
                 labels.add(date.format(formatter))
@@ -178,16 +190,12 @@ class RelatorioFragment : Fragment() {
                 labels.add(dia.data_reg)
             }
 
-
-
             if (isCaloria) {
-
-                if (valor > meta) cores.add(Color.parseColor("#F44336")) // Passou
-                else cores.add(Color.parseColor("#4CAF50")) // Ok
+                if (valor > meta) cores.add(Color.parseColor("#F44336")) // Passou (Vermelho)
+                else cores.add(Color.parseColor("#4CAF50")) // Ok (Verde)
             } else {
-
                 if (valor >= meta) cores.add(Color.parseColor("#2196F3")) // Meta Batida (Azul)
-                else cores.add(Color.parseColor("#FF9800")) // Falta beber
+                else cores.add(Color.parseColor("#FF9800")) // Falta beber (Laranja)
             }
         }
 
@@ -201,7 +209,6 @@ class RelatorioFragment : Fragment() {
 
         chart.data = barData
 
-
         chart.description.isEnabled = false // Remove descrição
         chart.legend.isEnabled = false // Remove legenda
         chart.animateY(1000) // Animação
@@ -213,7 +220,6 @@ class RelatorioFragment : Fragment() {
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.setDrawGridLines(false)
         xAxis.granularity = 1f
-
 
         chart.axisRight.isEnabled = false // Remove eixo da direita
         chart.axisLeft.setDrawGridLines(true)

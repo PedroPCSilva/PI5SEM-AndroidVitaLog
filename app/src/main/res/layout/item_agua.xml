@@ -1,52 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical"
-    android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true">
-
-    <ImageView
-        android:id="@+id/img_icon_water"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@android:drawable/ic_menu_report_image"
-        android:contentDescription="Ícone de Água"
-        android:layout_marginEnd="20dp"
-        app:tint="#2196F3" />
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#F1F9FF">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
 
-        <TextView
-            android:id="@+id/txt_qtd_agua"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="250 ml"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#333333"/>
+        <ImageView
+            android:id="@+id/img_icon_water"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_report_image"
+            android:contentDescription="Copo d'água"
+            android:layout_marginEnd="16dp"
+            app:tint="#29B6F6" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Toque para remover"
-            android:textSize="12sp"
-            android:textColor="#888888"/>
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txt_qtd_agua"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="250 ml"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#0277BD"/>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_delete_agua"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#FF5252" />
+
     </LinearLayout>
-
-    <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_delete"
-        android:alpha="0.5"
-        app:tint="#FF5252" />
-
-</LinearLayout>
+</androidx.cardview.widget.CardView>

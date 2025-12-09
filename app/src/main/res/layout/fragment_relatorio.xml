@@ -1,73 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="16dp">
+    android:background="#F5F7FA"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/layout_dados_faltando"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:visibility="gone">
+        android:padding="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Perfil Incompleto"
-            android:textSize="22sp"
-            android:textStyle="bold"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Para ver os gráficos, precisamos do seu perfil completo."
-            android:layout_margin="16dp"/>
-        <Button
-            android:id="@+id/btn_completar_cadastro"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Completar Cadastro"
-            android:backgroundTint="#FF9800"/>
-    </LinearLayout>
-
-    <ScrollView
-        android:id="@+id/layout_relatorio_conteudo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
+            android:text="Seu Progresso"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="24dp"/>
 
         <LinearLayout
+            android:id="@+id/layout_dados_faltando"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="50dp">
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@android:drawable/ic_dialog_alert"
+                app:tint="#FF9800"
+                android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perfil Incompleto"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Complete seu cadastro para ver as estatísticas."
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
+            <Button
+                android:id="@+id/btn_completar_cadastro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Completar Agora"
+                app:backgroundTint="#11C5C2"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_relatorio_conteudo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:baselineAligned="false"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="24dp">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="8dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
                         android:padding="16dp"
-                        android:gravity="center">
-                        <TextView android:text="IMC" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        <TextView android:id="@+id/txt_valor_imc" android:text="--" android:textSize="24sp" android:textStyle="bold" android:textColor="#4CAF50" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        <TextView android:id="@+id/txt_class_imc" android:text="--" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="IMC Atual"
+                            android:textSize="12sp"
+                            android:textColor="#757575"/>
+                        <TextView
+                            android:id="@+id/txt_valor_imc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:textColor="#11C5C2"/>
+                        <TextView
+                            android:id="@+id/txt_class_imc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Calculando..."
+                            android:textSize="12sp"
+                            android:textColor="#333333"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -76,16 +110,33 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:cardCornerRadius="8dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
                         android:padding="16dp"
-                        android:gravity="center">
-                        <TextView android:text="Água Ideal" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        <TextView android:id="@+id/txt_agua_ideal" android:text="-- ml" android:textSize="24sp" android:textStyle="bold" android:textColor="#2196F3" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        <TextView android:text="Recomendado" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Meta Água"
+                            android:textSize="12sp"
+                            android:textColor="#757575"/>
+                        <TextView
+                            android:id="@+id/txt_agua_ideal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-- ml"
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:textColor="#29B6F6"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Diário"
+                            android:textSize="12sp"
+                            android:textColor="#333333"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
@@ -95,44 +146,41 @@
                 android:layout_height="wrap_content"
                 android:text="Histórico de Calorias (7 dias)"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="12dp"/>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                app:cardCornerRadius="8dp"
-                android:layout_marginBottom="24dp"
-                app:cardElevation="2dp">
+                android:layout_height="250dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="24dp">
 
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/chart_calorias"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="10dp"/>
+                    android:padding="16dp"/>
             </androidx.cardview.widget.CardView>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Histórico de Hidratação (7 dias)"
+                android:text="Histórico de Hidratação"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="12dp"/>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
-
+                android:layout_height="250dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="24dp">
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/chart_agua"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="10dp"/>
+                    android:padding="16dp"/>
             </androidx.cardview.widget.CardView>
-
         </LinearLayout>
-    </ScrollView>
-</FrameLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -3,6 +3,7 @@ package com.empresa.vitalogfinal
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton // Importante
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -19,10 +20,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class CadastroActivity : AppCompatActivity() {
-    private lateinit var btnVoltar : Button
+
+    // Mudança de tipo para evitar Crash
+    private lateinit var btnVoltar : ImageButton
     private lateinit var edtNome : EditText
     private lateinit var edtEmail : EditText
     private lateinit var edtSenha : EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,6 +36,8 @@ class CadastroActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // Cast correto
         btnVoltar = findViewById(R.id.btnVoltar)
 
         btnVoltar.setOnClickListener {
@@ -48,7 +54,6 @@ class CadastroActivity : AppCompatActivity() {
             val email = edtEmail.text.toString().trim()
             val senha = edtSenha.text.toString().trim()
 
-            // Validação simples
             if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -60,7 +65,6 @@ class CadastroActivity : AppCompatActivity() {
                 .baseUrl(cred.ip)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-
 
             val usuarioService = retrofit.create(UsuarioService::class.java)
 
@@ -76,7 +80,7 @@ class CadastroActivity : AppCompatActivity() {
                             body?.message ?: "Cadastro realizado!",
                             Toast.LENGTH_LONG
                         ).show()
-                        finish() // volta para a tela anterior
+                        finish()
                     } else if (response.code() == 409) {
                         Toast.makeText(this@CadastroActivity, "Email já cadastrado!", Toast.LENGTH_LONG).show()
                     } else {

@@ -5,10 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.text.InputType
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
+import android.widget.ImageButton // Importante
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -17,7 +16,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.empresa.vitalogfinal.credenciais.Credenciais
 import com.empresa.vitalogfinal.model.usuario.LoginResponse
-import com.empresa.vitalogfinal.model.usuario.Usuario
 import com.empresa.vitalogfinal.service.EmailRequest
 import com.empresa.vitalogfinal.service.GenericResponse
 import com.empresa.vitalogfinal.service.UsuarioService
@@ -31,11 +29,12 @@ import java.util.Locale
 
 class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private lateinit var btnVoltar: Button
+    // Alterado de Button para ImageButton para evitar o Crash
+    private lateinit var btnVoltar: ImageButton
     private lateinit var btnLogin: Button
     private lateinit var edtEmail: EditText
     private lateinit var edtSenha: EditText
-    private lateinit var txtEsqueciSenha: TextView
+    private lateinit var txtEsqueciSenha: Button // Mudou para botão de texto no XML novo ou TextView clicável
 
     private lateinit var btnAcessibilidade: ImageButton
     private lateinit var tts: TextToSpeech
@@ -52,11 +51,14 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             insets
         }
 
+        // Bind com o tipo correto
         btnVoltar = findViewById(R.id.btnVoltar)
         btnLogin = findViewById(R.id.btnLogin)
         edtEmail = findViewById(R.id.edtEmail)
         edtSenha = findViewById(R.id.edtSenha)
         btnAcessibilidade = findViewById(R.id.btnAcessibilidade)
+
+        // No XML novo, txtEsqueciSenha é um MaterialButton do estilo TextButton
         txtEsqueciSenha = findViewById(R.id.txtEsqueciSenha)
 
         tts = TextToSpeech(this, this)
@@ -68,7 +70,7 @@ class LoginActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         txtEsqueciSenha.setOnClickListener { abrirDialogoRecuperacao() }
 
         btnAcessibilidade.setOnClickListener {
-            val texto = "Ecrã de Login. Se esqueceu sua senha, clique na opção 'Esqueci minha senha' abaixo do campo de senha."
+            val texto = "Tela de Login. Se esqueceu sua senha, clique na opção 'Esqueci minha senha'."
             falarTexto(texto)
         }
     }

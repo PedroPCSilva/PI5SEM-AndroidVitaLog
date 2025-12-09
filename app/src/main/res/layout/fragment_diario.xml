@@ -1,86 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5"
+    android:background="#F5F7FA"
     android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:background="@android:color/white"
-        android:elevation="2dp"
-        android:padding="8dp"
         android:layout_marginBottom="16dp">
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_prev_day"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:text="&lt;"
-            android:backgroundTint="#FF9800"
-            android:textColor="@android:color/white"/>
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_previous"
+            app:tint="#333333" />
 
         <TextView
             android:id="@+id/txt_selected_date"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:text="Data"
+            android:gravity="center"
+            android:text="Hoje, 09 Dez"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#333333"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_next_day"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:text="&gt;"
-            android:backgroundTint="#FF9800"
-            android:textColor="@android:color/white"/>
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_next"
+            app:tint="#333333" />
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@android:color/white"
-        android:padding="16dp"
-        android:elevation="2dp"
-        android:layout_marginBottom="16dp"
-        android:gravity="center">
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        android:layout_marginBottom="16dp">
 
-        <TextView
-            android:id="@+id/txt_resumo_calorias"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 / 2000 kcal"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#FF9800"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Consumo Diário"
-            android:textSize="12sp"
-            android:textColor="#888888"/>
-
-        <ProgressBar
-            android:id="@+id/progress_calorias"
-            style="?android:attr/progressBarStyleHorizontal"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="15dp"
-            android:max="100"
-            android:progress="0"
-            android:progressTint="#FF9800"
-            android:backgroundTint="#EEEEEE"
-            android:layout_marginTop="8dp"
-            android:scaleY="1.2"/>
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txt_resumo_calorias"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0 / 2000 kcal"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <ProgressBar
+                android:id="@+id/progress_calorias"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:progress="0"
+                android:max="100"
+                android:progressTint="#FF9800"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_diario"
@@ -92,8 +86,9 @@
     <Button
         android:id="@+id/btn_add_grupo"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="+ Criar Refeição"
-        android:backgroundTint="#FF9800"
-        android:textColor="@android:color/white"/>
+        android:layout_height="wrap_content"
+        android:text="Adicionar Refeição"
+        android:backgroundTint="#11C5C2"
+        android:textColor="#FFFFFF"/>
+
 </LinearLayout>
